@@ -1,18 +1,119 @@
+body {
+  background-color: rgb(246, 252, 252);
+}
+
 .App {
-  font-family: Arial, sans-serif;
   text-align: center;
+  padding: 20px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Alterado de height para min-height */
+}
+
+.formulario {
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 0 2rem;
+  background-color: rgb(238, 243, 243);
+}
+.Titulo {
+  color: #636262;
+}
+
+.Botao {
+  border-radius: 4px;
+  height: 30px;
+  font-size: 15px;
+}
+
+.input-style,
+select.input-style,
+input.input-style {
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Ajustado para 100% para ocupar a largura total */
+  box-sizing: border-box;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+input[type="submit"] {
+  width: 150px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+.quantidade-resultados {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.botaoexport {
+  position: relative;
+  width: 150px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 150px;
+  border-radius: 4px;
+  height: 30px;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 5px; /* Adicionado margem superior */
 }
 
 .card {
-  border: 1px solid #ccc;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
   border-radius: 5px;
-  padding: 16px;
-  margin: 16px;
+  padding: 20px;
+  margin: 10px;
+  width: 250px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+  text-align: left;
+}
+.Empresa {
+  color: #636262;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+.close:focus {
+  color: black;
+  text-decoration: none;
   cursor: pointer;
 }
 
 .modal {
-  display: none;
   position: fixed;
   z-index: 1;
   left: 0;
@@ -20,40 +121,47 @@
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgb(0, 0, 0);
   background-color: rgba(0, 0, 0, 0.4);
 }
 
 .modal-content {
   background-color: #fefefe;
-  margin: 15% auto;
   padding: 20px;
   border: 1px solid #888;
   width: 80%;
-}
-
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  max-width: 60vw;
+  height: 70vh;
+  position: fixed;
+  top: calc(50% - 10px); /* 10 pixels acima do centro */
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .error-message {
   color: red;
-  font-size: 16px;
-  margin: 16px;
+  margin-bottom: 10px;
+}
+.close:hover {
+  cursor: pointer;
+}
+.close {
+  font-size: 20px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin-right: 8px;
+}
+
+@media screen and (max-width: "425px") {
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
 }

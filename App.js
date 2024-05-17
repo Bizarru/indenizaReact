@@ -1,27 +1,17 @@
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as XLSX from "xlsx";
 import "./App.css";
 
 const App = () => {
-  const [formData, setFormData] = useState({
-    empresa: "",
-    local: "",
-    tipoServico: "",
-    ug: "",
-    numeroProcesso: "",
-    competenciaMes: "",
-    competenciaAno: "",
-  });
+  const { register, handleSubmit } = useForm();
   const [processos, setProcessos] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedProcesso, setSelectedProcesso] = useState(null);
+  const [showExportButton, setShowExportButton] = useState(false);
+  const [showResultadopesquisa, setShowResultadopesquisa] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
+  const onSubmit = (data) => {
     const {
       empresa,
       local,
@@ -30,7 +20,7 @@ const App = () => {
       numeroProcesso,
       competenciaMes,
       competenciaAno,
-    } = formData;
+    } = data;
 
     if (
       !empresa &&
@@ -42,94 +32,105 @@ const App = () => {
       !competenciaAno
     ) {
       setErrorMessage("Por favor, insira dados para a pesquisa.");
+      setProcessos([]);
       return;
     }
 
     setErrorMessage("");
-
-    const query = new URLSearchParams(formData).toString();
+    const query = new URLSearchParams(data).toString();
 
     fetch(`http://localhost:3000/pesquisar?${query}`)
       .then((response) => response.json())
       .then((data) => {
+        if (data.length === 0) {
+          setErrorMessage("Nenhum resultado encontrado.");
+        } else {
+          setErrorMessage("");
+        }
         setProcessos(data);
+        setShowExportButton(true);
+        setShowResultadopesquisa(true);
       });
   };
-
-  const showModal = (processo) => {
-    setSelectedProcesso(processo);
-  };
-
+  //função para fechar o popUP
   const closeModal = () => {
     setSelectedProcesso(null);
   };
+  //função para abrir o popUp
+  const showModal = (processo) => {
+    setSelectedProcesso(processo);
+  };
+  //função que exporta o resultado da pesquisa para excel
+  const exportarParaExcel = () => {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(processos);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Processos");
 
+    const excelBlob = new Blob(
+      [s2ab(XLSX.write(workbook, { bookType: "xlsx", type: "binary" }))],
+      {
+        type: "application/octet-stream",
+      }
+    );
+
+    const url = window.URL.createObjectURL(excelBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "processos.xlsx";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const s2ab = (s) => {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; ++i) view[i] = s.charCodeAt(i) & 0xff;
+    return buf;
+  };
+
+  //Formulário com seus respectivos inputs!
   return (
     <div className="App">
-      <h1>Pesquisar Processos</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Empresa:
+      <div className="formulario">
+        <h1 className="Titulo">Pesquisar Processos</h1>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <input
+            className="input-style"
             type="text"
-            name="empresa"
-            value={formData.empresa}
-            onChange={handleChange}
+            placeholder="Empresa"
+            {...register("empresa")}
           />
-        </label>
-        <br />
-        <br />
-        <label>
-          Local:
           <input
+            className="input-style"
             type="text"
-            name="local"
-            value={formData.local}
-            onChange={handleChange}
+            placeholder="Local de Serviço"
+            {...register("local")}
           />
-        </label>
-        <br />
-        <br />
-        <label>
-          Tipo de Serviço:
           <input
+            className="input-style"
             type="text"
-            name="tipoServico"
-            value={formData.tipoServico}
-            onChange={handleChange}
+            placeholder="Tipo de Serviço"
+            {...register("tipoServico")}
           />
-        </label>
-        <br />
-        <br />
-        <label>
-          UG:
           <input
+            className="input-style"
             type="text"
-            name="ug"
-            value={formData.ug}
-            onChange={handleChange}
+            placeholder="Número do Processo"
+            {...register("numeroProcesso")}
           />
-        </label>
-        <br />
-        <br />
-        <label>
-          Número do Processo:
           <input
+            className="input-style"
             type="text"
-            name="numeroProcesso"
-            value={formData.numeroProcesso}
-            onChange={handleChange}
+            placeholder="UG"
+            {...register("ug")}
           />
-        </label>
-        <br />
-        <br />
-        <label>
-          Competência Mês:
-          <select
-            name="competenciaMes"
-            value={formData.competenciaMes}
-            onChange={handleChange}
-          >
+          <input
+            className="input-style"
+            type="text"
+            placeholder="Ano"
+            {...register("competenciaAno")}
+          />
+          <select className="input-style" {...register("competenciaMes")}>
             <option value="">Selecione o Mês</option>
             <option value="janeiro">Janeiro</option>
             <option value="fevereiro">Fevereiro</option>
@@ -144,54 +145,60 @@ const App = () => {
             <option value="novembro">Novembro</option>
             <option value="dezembro">Dezembro</option>
           </select>
-        </label>
-        <br />
-        <br />
-        <label>
-          Competência Ano:
-          <input
-            type="text"
-            name="competenciaAno"
-            value={formData.competenciaAno}
-            onChange={handleChange}
-          />
-        </label>
-        <br />
-        <br />
-        <button type="submit">Pesquisar</button>
-      </form>
-
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
-
-      <div className="cards-container">
-        {processos.map((processo, index) => (
-          <div className="card" key={index} onClick={() => showModal(processo)}>
-            <h3>{processo.CREDOR}</h3>
-            <p>
-              <strong>Local:</strong> {processo.LOCAL}
-            </p>
-            <p>
-              <strong>Serviço:</strong> {processo.SERVIÇO}
-            </p>
-            <p>
-              <strong>UG:</strong> {processo.UG}
-            </p>
-            <p>
-              <strong>Processo:</strong> {processo.PROCESSO}
-            </p>
-            <p>
-              <strong>Competência Mês:</strong> {processo["COMPETENCIA MES"]}
-            </p>
-            <p>
-              <strong>Competência Ano:</strong> {processo["COMPETENCIA ANO"]}
-            </p>
-          </div>
-        ))}
+          <input className="Botao" type="submit" />
+        </form>
       </div>
-
+      {/* //implemenação da função mostrar resultados das pesquisas */}
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {showResultadopesquisa && (
+        <div className="quantidade-resultados">
+          Resultados encontrados: {processos.length}
+        </div>
+      )}
+      {/* implementação do botão que exportas o resutlados das pesquisas para o formato excel */}
+      {showExportButton && (
+        <div>
+          <button className="botaoexport" onClick={exportarParaExcel}>
+            Criar Relatório
+          </button>
+          {/* criação ds resultados da pesquisa com cards dinâmicos */}
+          <div className="cards-container">
+            {processos.map((processo, index) => (
+              <div
+                className="card"
+                key={index}
+                onClick={() => showModal(processo)}
+              >
+                <h3 className="Empresa">{processo.CREDOR}</h3>
+                <p>
+                  <strong>Local:</strong> {processo.LOCAL}
+                </p>
+                <p>
+                  <strong>Serviço:</strong> {processo.SERVIÇO}
+                </p>
+                <p>
+                  <strong>UG:</strong> {processo.UG}
+                </p>
+                <p>
+                  <strong>Processo:</strong> {processo.PROCESSO}
+                </p>
+                <p>
+                  <strong>Mês de Competência:</strong>{" "}
+                  {processo["COMPETENCIA MES"]}
+                </p>
+                <p>
+                  <strong>Ano de Competência:</strong>{" "}
+                  {processo["COMPETENCIA ANO"]}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* criação dos popUP com as informações completas */}
       {selectedProcesso && (
-        <div className="modal" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal">
+          <div className="modal-content">
             <span className="close" onClick={closeModal}>
               &times;
             </span>
@@ -215,11 +222,11 @@ const App = () => {
               <strong>Processo:</strong> {selectedProcesso.PROCESSO}
             </p>
             <p>
-              <strong>Competência Mês:</strong>{" "}
+              <strong>Mês de Competência:</strong>{" "}
               {selectedProcesso["COMPETENCIA MES"]}
             </p>
             <p>
-              <strong>Competência Ano:</strong>{" "}
+              <strong>Ano de Competência:</strong>{" "}
               {selectedProcesso["COMPETENCIA ANO"]}
             </p>
             <p>
